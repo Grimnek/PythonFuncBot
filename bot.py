@@ -1,40 +1,34 @@
 import telebot
 from telebot import types
-
 import time
 import random
 from string import digits, punctuation, ascii_letters
 import uuid
-import pafy
 from gtts import gTTS
-import os
+from config import TOKEN
 
-import config
-
-bot = telebot.TeleBot(config.TOKEN)
-
+bot = telebot.TeleBot(TOKEN)
 user_request = ''
 user_result = None
 
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
-    # Клавиатура
     global markup
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    item1 = types.KeyboardButton("Прибрати клавіатуру")
-    item2 = types.KeyboardButton("Допомога")
-    item3 = types.KeyboardButton("Загадати рандомне число")
-    item4 = types.KeyboardButton("Згенерувати складний пароль")
-    item5 = types.KeyboardButton("Згенерувати рандомне ID")
-    item6 = types.KeyboardButton("Завантажити відео з ютуба")
-    item7 = types.KeyboardButton("Конвертація тексту в аудіо")
-    item8 = types.KeyboardButton("Youtube відео в аудіо")
+    item1 = types.KeyboardButton("Remove keyboard")
+    item2 = types.KeyboardButton("Help")
+    item3 = types.KeyboardButton("Generate a random number")
+    item4 = types.KeyboardButton("Generate a complex password")
+    item5 = types.KeyboardButton("Generate a random ID")
+    item6 = types.KeyboardButton("Convert text to audio")
 
-    markup.add(item1, item2).add(item3, item4, item5).add(item6, item7, item8)
+    markup.add(item1, item2, item3).add(item4, item5, item6)
 
     bot.send_message(message.chat.id,
-                     "Вітання, {0.first_name}!\nЯ - <b>{1.first_name}</b>, бот з купою функцій. \n \n Якщо вам потрібна інформація про мене, натисніть клавішу Допомога.".format(
+                     "Hi, {0.first_name}!"
+                     "\nI am <b>{1.first_name}</b>, a bot with many functions."
+                     "\n \n If you need information about me, press the Help button.".format(
                          message.from_user, bot.get_me()),
                      parse_mode='html', reply_markup=markup)
 
@@ -43,46 +37,46 @@ def welcome(message):
 def keyboard_on(message):
     global markup
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    item1 = types.KeyboardButton("Прибрати клавіатуру")
-    item2 = types.KeyboardButton("Допомога")
-    item3 = types.KeyboardButton("Загадати рандомне число")
-    item4 = types.KeyboardButton("Згенерувати складний пароль")
-    item5 = types.KeyboardButton("Згенерувати рандомне ID")
-    item6 = types.KeyboardButton("Завантажити відео з ютуба")
-    item7 = types.KeyboardButton("Конвертація тексту в аудіо")
-    item8 = types.KeyboardButton("Youtube відео в аудіо")
+    item1 = types.KeyboardButton("Remove keyboard")
+    item2 = types.KeyboardButton("Help")
+    item3 = types.KeyboardButton("Generate a random number")
+    item4 = types.KeyboardButton("Generate a complex password")
+    item5 = types.KeyboardButton("Generate a random ID")
+    item6 = types.KeyboardButton("Convert text to audio")
 
-    markup.add(item1, item2).add(item3, item4, item5).add(item6, item7, item8)
-    bot.send_message(message.chat.id, 'Клавіатура увімкнена', reply_markup=markup)
+    markup.add(item1, item2, item3).add(item4, item5, item6)
+    bot.send_message(message.chat.id, 'The keyboard is enabled', reply_markup=markup)
 
 
 @bot.message_handler(content_types=['text'])
 def answer(message):
-    if message.text == 'Загадати рандомне число':
-        msg = bot.send_message(message.chat.id, 'Виберіть число від 1 до 10')
+    if message.text == 'Remove keyboard':
+        bot.send_message(message.chat.id, 'The keyboard is removed', reply_markup=types.ReplyKeyboardRemove())
+    elif message.text == 'Help':
+        bot.send_message(message.chat.id,
+                         f'###### Help ###### '
+                         f'\n\n /keyboard - Remove the keyboard. '
+                         f'\n\n Button "Remove Keyboard" - Remove the keyboard. '
+                         f'\n\n Help - Guide to the bot. '
+                         f'\n\n "Generate a random number" - A number guessing game from 1 to 10. '
+                         f'\n\n "Generate a complex password" - '
+                         f'If you have no imagination for creating a password – this is your choice. '
+                         f'\n\n "Generate a random ID" - Need to generate an ID? Then press this button. '
+                         f'\n\n "Convert text to audio" - You write text, we convert it into an audio file. ')
+    elif message.text == 'Generate a random number':
+        msg = bot.send_message(message.chat.id, 'Choose a number from 1 to 10')
         bot.register_next_step_handler(msg, randnum)
-    elif message.text == 'Згенерувати складний пароль':
+    elif message.text == 'Generate a complex password':
         symbols = digits + punctuation + ascii_letters
         sec_random = random.SystemRandom()
         hard_password = ''.join(sec_random.choice(symbols) for i in range(15))
-        bot.send_message(message.chat.id, f'Ваш пароль:  {hard_password}')
-    elif message.text == 'Прибрати клавіатуру':
-        bot.send_message(message.chat.id, 'Клавіатура прибрана', reply_markup=types.ReplyKeyboardRemove())
-    elif message.text == 'Допомога':
-        bot.send_message(message.chat.id,
-                         f'###### Допомога ###### \n\n ### Прибрати та повернути клавіатуру ### \n /keyboard - Повернути клавіатуру. \n Кнопка \'Прибрати клавіатуру\' - Прибрати клавіатуру. \n\n Допомога - гайд по боту. \n\n \'Загадати рандомне число\' - Гра на вгадування чисел від 1 до 10. \n\n \'Згенерувати складний пароль\' - Якщо у вас немає фантазії для створення пароля – ось ваш вибір \n\n \'Згенерувати рандомне ID\' - Потрібно згенерувати ID? Тоді натисніть на цю кнопку \n\n \'Завантажити відео з ютуба\' - Качається відео з Youtube у високій якості. \n\n \'Конвертація тексту в аудіо\' - Ви пишете текст, ми його переробляємо в аудіо файл. \n\n \'Youtube відео в аудіо\' - Якщо вам потрібна пісня, яка існує як Youtube, тоді ви можете цією командою витягти з неї аудіозапис!')
-    elif message.text == 'Згенерувати рандомне ID':
+        bot.send_message(message.chat.id, f'Your password:  {hard_password}')
+    elif message.text == 'Generate a random ID':
         rand_id = uuid.uuid4()
-        bot.send_message(message.chat.id, f'Ваш ID - {rand_id}')
-    elif message.text == 'Завантажити відео з ютуба':
-        msg = bot.send_message(message.chat.id, 'Введіть посилання')
-        bot.register_next_step_handler(msg, youtube_videos)
-    elif message.text == 'Конвертація тексту в аудіо':
-        msg = bot.send_message(message.chat.id, 'Що конвертуватимемо?')
+        bot.send_message(message.chat.id, f'Your ID - {rand_id}')
+    elif message.text == 'Convert text to audio':
+        msg = bot.send_message(message.chat.id, 'What shall we convert??')
         bot.register_next_step_handler(msg, text_audio)
-    elif message.text == 'Youtube відео в аудіо':
-        msg = bot.send_message(message.chat.id, 'Введіть посилання')
-        bot.register_next_step_handler(msg, youtube_audio)
     else:
         pass
 
@@ -95,42 +89,19 @@ def randnum(message, user_result=None):
             user_request = int(message.text)
         else:
             user_request = str(user_result)
-        bot.send_message(message.chat.id, 'Ну що ж, давайте перевіримо.')
+        bot.send_message(message.chat.id, 'Well, let\'s check it out.')
         NumberToGuess = random.randint(1, 10)
         time.sleep(2)
         if user_request == NumberToGuess:
-            bot.send_message(message.chat.id, f'Вітаю, ви вгадали! Це справді було число {NumberToGuess}')
+            bot.send_message(message.chat.id, f'Congratulations, you guessed it! It really was a number {NumberToGuess}')
         else:
-            bot.send_message(message.chat.id, 'Не вгадали.\n Інший раз вам точно пощастить!')
-    except Exception as e:
-        bot.reply_to(message, 'Помилка, спробуйте ще раз')
-
-
-def youtube_videos(message):
-    bot.send_message(message.chat.id, 'Завантажую відео...')
-    try:
-        global user_request
-
-        if user_result == None:
-            user_request = str(message.text)
-        else:
-            user_request = str(user_result)
-
-        if "video.mp4" != None:
-            os.remove('video.mp4')
-
-        video = pafy.new(user_request)
-        best_stream = video.getbest()
-        best_stream.download("video.mp4")
-        bot.send_message(message.chat.id, 'Відео завантажено! Пересилаю вам.')
-        video_d = open("video.mp4", 'rb')
-        bot.send_video(message.chat.id, video_d)
-    except Exception as e:
-        bot.reply_to(message, "Виникла помилка! Перевірте посилання ще раз.")
+            bot.send_message(message.chat.id, 'They didn\'t guess.\n Next time you will definitely be lucky!')
+    except Exception:
+        bot.reply_to(message, 'Error, try again')
 
 
 def text_audio(message):
-    bot.send_message(message.chat.id, 'Починаю процес конвертації.')
+    bot.send_message(message.chat.id, 'I start the conversion process.')
     try:
         global user_request
 
@@ -140,42 +111,14 @@ def text_audio(message):
             user_request = str(user_result)
 
         audio = 'audio.mp3'
-        language = 'ru'
+        language = 'en'
         sp = gTTS(text=user_request, lang=language, slow=False)
         sp.save(audio)
-        bot.send_message(message.chat.id, 'Конвертацію успішно завершено! Скидаю аудіо.')
+        bot.send_message(message.chat.id, 'Conversion completed successfully! I\'m dropping the audio.')
         audio_d = open("audio.mp3", 'rb')
         bot.send_audio(message.chat.id, audio_d)
-    except Exception as e:
-        bot.reply_to(message, "Щось пішло не так...")
-
-
-
-def youtube_audio(message):
-    bot.send_message(message.chat.id, 'Завантажую відео...')
-    try:
-        global user_request
-
-        if user_result == None:
-            user_request = str(message.text)
-        else:
-            user_request = str(user_result)
-
-        if "audio_youtube.mp3" != None:
-            os.remove('audio_youtube.mp3')
-
-        audio = pafy.new(user_request)
-        audio_title = audio.title
-        bot.send_message(message.chat.id, 'Починаю процес конвертації.')
-        best_audio = audio.getbestaudio()
-        best_audio.download("audio_youtube.mp3")
-        bot.send_message(message.chat.id, 'Готово! Знижую аудіозапис з назвою.')
-        audio_d = open("audio_youtube.mp3", 'rb')
-        bot.send_message(message.chat.id, audio_title)
-        bot.send_audio(message.chat.id, audio_d)
-    except Exception as e:
-        bot.reply_to(message, "Виникла помилка! Перевірте посилання ще раз.")
-
+    except Exception:
+        bot.reply_to(message, "Something went wrong...")
 
 
 bot.polling(none_stop=True)
